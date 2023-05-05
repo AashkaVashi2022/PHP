@@ -1,0 +1,75 @@
+     /*
+        *
+        * Dynamic Function To Update :- This Function Will Update The Given table
+        * Params :- Table name - Mention that table you wanted to update, data :- Mention the data that to be update, filterFieldName :- Add here The Field Name that available in   database and you wanted to filter with it, filterFieldValue :- Give value that wanted to filter here....
+        * return :- true if completed process else false...
+    */
+    public function dynamicUpdateTable($tblName = null, $data = null, $filterFieldName = null, $filterFieldValue = null)
+    {
+        $this->db->where($filterFieldName, $filterFieldValue);
+        return $this->db->update($tblName, $data);
+    }
+
+    /*
+        *
+        * Dynamic Function To Insert :- This Function Will Insert The data into The Given table
+        * Params :- Table name - Mention that table you wanted to update, data :- Mention the data that to be update, filterFieldName :- Add here The Field Name that available in   database and you wanted to filter with it, filterFieldValue :- Give value that wanted to filter here....
+        * return :- true if completed process else false...
+    */
+    public function dynamicInsertTable($tblName = null, $data = null)
+    {
+        $this->db->trans_start(); # Starting Transaction
+        $this->db->trans_strict(false); # See Note 01. If you wish can remove as well
+        //=======================Code Start===========================
+        $this->db->insert($tblName, $data);
+        $insert_id = $this->db->insert_id();
+        $message = INSERT_RECORD_CONSTANT . " On student " . $tblName . " id " . $insert_id;
+        $action = "Insert";
+        $record_id = $insert_id;
+        $this->log($message, $record_id, $action);
+        //======================Code End==============================
+
+        $this->db->trans_complete(); # Completing transaction
+        /* Optional */
+
+        if ($this->db->trans_status() === false) {
+            # Something went wrong.
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            return $insert_id;
+        }
+    }
+
+    /*
+        *
+        * Dynamic Function To Delete :- This Function Will Delete A Row IN Given table
+        * Params :- Table name - Mention that table you wanted to update,filter :- id 
+        * return :- true if completed process else false...
+    */
+    public function dynamicDeleteRecored($tblName = null, $filterFieldName = null, $filterFieldValue = null)
+    {
+        $this->db->where($filterFieldName, $filterFieldValue);
+        return $this->db->delete($tblName);
+    }
+
+    /*
+        *
+        * Dynamic Function To Select Recoreds :- This Function Will Select data By Given Parameters
+        * Params :- Table name - Mention that table you wanted to select,filter that given by userfilterFild at database , orderBy : in which order you wanted data, Limit :- How much data (Rows) wanted..
+        * return :- No oF recored
+    */
+    public function getDynamicInformationByFilters($tblName = null, $values = null, $filter = null, $filterField = null, $orderBy = null, $limit = null)
+    {
+        if ($filter && $filterField) {
+            
+            $this->db->where($filterField, $filter);
+        }
+        if ($orderBy) {
+            $this->db->order_by($orderBy['field_name'], $orderBy['order']);
+        }
+        if ($limit) {
+            $this->db->limit($limit);
+        }
+        return $this->db->select($values)->from($tblName)->get();
+    }
